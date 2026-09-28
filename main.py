@@ -4,13 +4,13 @@ Urdu Medical Scribe - backend
 Receives a short audio clip (one speaking turn) from the browser, translates the
 spoken Urdu into English with faster-whisper, optionally cleans up medical terms
 with a local LLM (Ollama), and returns the English text plus any medical terms found.
+Also generates a structured clinical note from the full transcript via Ollama.
 
-Run:  uvicorn main:app --port 8000
-# WHISPER_MODEL=large-v3 WHISPER_DEVICE=cpu WHISPER_COMPUTE=int8 uvicorn main:app --port 8000
-OLLAMA_MODEL=qwen2.5:7b WHISPER_MODEL=large-v3 WHISPER_DEVICE=cpu WHISPER_COMPUTE=int8 uvicorn main:app --port 8000
+RUN: OLLAMA_MODEL=qwen2.5:7b WHISPER_MODEL=large-v3 WHISPER_DEVICE=cpu WHISPER_COMPUTE=int8 uvicorn main:app --port 8000
 """
 
 import io
+import json
 import logging
 import os
 import re
@@ -22,6 +22,7 @@ import httpx
 from faster_whisper import WhisperModel
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("scribe")
@@ -35,7 +36,7 @@ WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
 WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "auto")  # auto | cpu | cuda
 WHISPER_COMPUTE = os.getenv("WHISPER_COMPUTE", "auto")  # auto | int8 | float16 ...
 
-# Optional second pass that fixes medical wording. Leave empty to disable.
+# Optional second pass that fixes medical wording, and powers the clinical note.
 # Example:  OLLAMA_MODEL=qwen2.5:7b
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
@@ -113,7 +114,10 @@ LLM_SYSTEM_PROMPT = (
 def get_llm_prompt() -> str:
     prompt = LLM_SYSTEM_PROMPT
     if TERMS:
-        prompt += "\n\nKnown local medical terms and drugs (prioritize these if they sound similar to mistranslated words):\n" + ", ".join(TERMS)
+        prompt += (
+            "\n\nKnown local medical terms and drugs (prioritize these if they sound "
+            "similar to mistranslated words):\n" + ", ".join(TERMS)
+        )
     return prompt
 
 
@@ -142,6 +146,70 @@ def refine_with_llm(text: str) -> tuple[str, bool]:
         return text, False
 
 
+# ---------------------------------------------------------------- clinical note (summarize)
+class SummarizeRequest(BaseModel):
+    doctor_text: str
+    patient_text: str
+
+
+SUMMARY_SYSTEM_PROMPT = (
+    "You are an expert medical scribe. Given the transcript of a consultation between a doctor and a patient, "
+    "generate a structured clinical note.\n\n"
+    "Important requirements:\n"
+    "- Do not blindly transcribe every sentence or include conversational fillers.\n"
+    "- Preserve clinically important information exactly, especially medication names, doses, units, and durations.\n"
+    "- Do not invent symptoms, diagnoses, or medications. Do not infer a diagnosis unless explicitly stated by the doctor.\n"
+    "- Combine information from multiple turns and avoid unnecessary repetition.\n"
+    "- Use concise, professional medical language. Organize into appropriate sections with bold headers (e.g. **Chief Complaint**, **History of Present Illness**, **Examination / Vitals**, **Investigations**, **Treatment / Medication Plan**, **Follow-up Plan**).\n"
+    "- Only include sections that have relevant information.\n\n"
+    "Return the result as a JSON object with exactly two string keys:\n"
+    "1. 'chief_complaint': containing patient-reported information like Chief Complaint, History of Present Illness, Symptoms, Past Medical History, etc.\n"
+    "2. 'examination_findings': containing doctor-provided information like Assessment, Examination Findings, Investigations, Diagnosis, Treatment Plan, and Follow-up.\n"
+    "Do not include any other text."
+)
+
+
+@app.post("/api/summarize")
+def summarize_consultation(req: SummarizeRequest):
+    if not OLLAMA_MODEL:
+        raise HTTPException(503, "Ollama is not configured. Set OLLAMA_MODEL to enable the clinical note.")
+
+    if not req.doctor_text.strip() and not req.patient_text.strip():
+        raise HTTPException(400, "There's no transcript yet to summarize.")
+
+    transcript = f"Doctor:\n{req.doctor_text}\n\nPatient:\n{req.patient_text}"
+
+    try:
+        r = httpx.post(
+            f"{OLLAMA_URL}/api/chat",
+            json={
+                "model": OLLAMA_MODEL,
+                "stream": False,
+                "options": {"temperature": 0},
+                "format": "json",
+                "messages": [
+                    {"role": "system", "content": SUMMARY_SYSTEM_PROMPT},
+                    {"role": "user", "content": transcript},
+                ],
+            },
+            timeout=120,
+        )
+        r.raise_for_status()
+        out = r.json()["message"]["content"].strip()
+        parsed = json.loads(out)
+    except json.JSONDecodeError as exc:
+        log.exception("Summarizer returned non-JSON output")
+        raise HTTPException(500, f"The note generator returned an unexpected format: {exc}")
+    except Exception as exc:
+        log.exception("Summarization failed")
+        raise HTTPException(500, f"Could not summarize: {exc}")
+
+    return {
+        "chief_complaint": parsed.get("chief_complaint", ""),
+        "examination_findings": parsed.get("examination_findings", ""),
+    }
+
+
 # ---------------------------------------------------------------- API
 @app.get("/api/health")
 def health():
@@ -149,6 +217,7 @@ def health():
         "status": "ready" if model is not None else "loading",
         "whisper_model": WHISPER_MODEL,
         "llm_cleanup": OLLAMA_MODEL or None,
+        "note_generation": bool(OLLAMA_MODEL),
         "terms_loaded": len(TERMS),
     }
 

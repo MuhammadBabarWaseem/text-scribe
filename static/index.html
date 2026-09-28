@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,9 +25,14 @@
       --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body { margin: 0; }
+    html,
+    body {
+      margin: 0;
+    }
 
     body {
       background: var(--bg);
@@ -74,12 +80,20 @@
     }
 
     .engine i {
-      width: 8px; height: 8px; border-radius: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
       background: #b5c0c4;
       display: inline-block;
     }
-    .engine.ready i { background: #2e9d63; }
-    .engine.error i { background: var(--rec); }
+
+    .engine.ready i {
+      background: #2e9d63;
+    }
+
+    .engine.error i {
+      background: var(--rec);
+    }
 
     /* ------------------------------------------------ panels */
     .panels {
@@ -98,8 +112,15 @@
       transition: border-color .15s, box-shadow .15s;
     }
 
-    .panel[data-role="doctor"].active  { border-top-color: var(--doctor);  box-shadow: 0 0 0 1px var(--doctor); }
-    .panel[data-role="patient"].active { border-top-color: var(--patient); box-shadow: 0 0 0 1px var(--patient); }
+    .panel[data-role="doctor"].active {
+      border-top-color: var(--doctor);
+      box-shadow: 0 0 0 1px var(--doctor);
+    }
+
+    .panel[data-role="patient"].active {
+      border-top-color: var(--patient);
+      box-shadow: 0 0 0 1px var(--patient);
+    }
 
     .panel-head {
       display: flex;
@@ -113,8 +134,14 @@
       font-size: 1.05rem;
       font-weight: 600;
     }
-    .panel[data-role="doctor"] h2  { color: var(--doctor); }
-    .panel[data-role="patient"] h2 { color: var(--patient); }
+
+    .panel[data-role="doctor"] h2 {
+      color: var(--doctor);
+    }
+
+    .panel[data-role="patient"] h2 {
+      color: var(--patient);
+    }
 
     .badge {
       font-size: 0.8rem;
@@ -122,9 +149,20 @@
       border-radius: 999px;
       visibility: hidden;
     }
-    .panel.active .badge { visibility: visible; }
-    .panel[data-role="doctor"] .badge  { background: var(--doctor-soft);  color: var(--doctor); }
-    .panel[data-role="patient"] .badge { background: var(--patient-soft); color: var(--patient); }
+
+    .panel.active .badge {
+      visibility: visible;
+    }
+
+    .panel[data-role="doctor"] .badge {
+      background: var(--doctor-soft);
+      color: var(--doctor);
+    }
+
+    .panel[data-role="patient"] .badge {
+      background: var(--patient-soft);
+      color: var(--patient);
+    }
 
     textarea {
       flex: 1;
@@ -139,8 +177,15 @@
       color: var(--ink);
       background: transparent;
     }
-    textarea:focus-visible { outline: 2px solid #7aa6d8; outline-offset: -2px; }
-    textarea::placeholder { color: #8b9aa1; }
+
+    textarea:focus-visible {
+      outline: 2px solid #7aa6d8;
+      outline-offset: -2px;
+    }
+
+    textarea::placeholder {
+      color: #8b9aa1;
+    }
 
     /* ------------------------------------------------ control bar */
     .controls {
@@ -162,7 +207,13 @@
       overflow: hidden;
       justify-self: start;
     }
-    .speaker input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .speaker input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .speaker label {
       padding: 9px 18px;
       cursor: pointer;
@@ -170,12 +221,31 @@
       color: var(--muted);
       user-select: none;
     }
-    .speaker label + input + label,
-    .speaker input + label + input + label { border-left: 1px solid var(--line); }
-    #sp-doctor:checked  + label { background: var(--doctor);  color: #fff; }
-    #sp-patient:checked + label { background: var(--patient); color: #fff; }
-    .speaker input:focus-visible + label { outline: 2px solid #7aa6d8; outline-offset: -3px; }
-    .speaker.locked label { cursor: not-allowed; opacity: .75; }
+
+    .speaker label+input+label,
+    .speaker input+label+input+label {
+      border-left: 1px solid var(--line);
+    }
+
+    #sp-doctor:checked+label {
+      background: var(--doctor);
+      color: #fff;
+    }
+
+    #sp-patient:checked+label {
+      background: var(--patient);
+      color: #fff;
+    }
+
+    .speaker input:focus-visible+label {
+      outline: 2px solid #7aa6d8;
+      outline-offset: -3px;
+    }
+
+    .speaker.locked label {
+      cursor: not-allowed;
+      opacity: .75;
+    }
 
     .rec-wrap {
       display: flex;
@@ -186,7 +256,8 @@
     }
 
     #rec {
-      width: 72px; height: 72px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       border: 0;
       background: var(--rec);
@@ -196,20 +267,53 @@
       place-items: center;
       transition: transform .1s;
     }
-    #rec:hover { transform: scale(1.04); }
-    #rec:focus-visible { outline: 3px solid #7aa6d8; outline-offset: 3px; }
-    #rec .ico-stop { display: none; }
-    #rec.on .ico-mic { display: none; }
-    #rec.on .ico-stop { display: block; }
-    #rec.on { animation: pulse 1.4s ease-out infinite; }
 
-    @keyframes pulse {
-      0%   { box-shadow: 0 0 0 0 rgba(198, 40, 57, .45); }
-      100% { box-shadow: 0 0 0 18px rgba(198, 40, 57, 0); }
+    #rec:hover {
+      transform: scale(1.04);
     }
 
-    .rec-label { font-size: 0.9rem; font-weight: 500; }
-    .timer { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.85rem; min-height: 1.3em; }
+    #rec:focus-visible {
+      outline: 3px solid #7aa6d8;
+      outline-offset: 3px;
+    }
+
+    #rec .ico-stop {
+      display: none;
+    }
+
+    #rec.on .ico-mic {
+      display: none;
+    }
+
+    #rec.on .ico-stop {
+      display: block;
+    }
+
+    #rec.on {
+      animation: pulse 1.4s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(198, 40, 57, .45);
+      }
+
+      100% {
+        box-shadow: 0 0 0 18px rgba(198, 40, 57, 0);
+      }
+    }
+
+    .rec-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .timer {
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 0.85rem;
+      min-height: 1.3em;
+    }
 
     .side-right {
       justify-self: end;
@@ -219,10 +323,26 @@
       gap: 10px;
     }
 
-    .check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
-    .check input { width: 16px; height: 16px; accent-color: var(--doctor); }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
 
-    .btn-row { display: flex; gap: 8px; }
+    .check input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--doctor);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
     .btn {
       font: inherit;
       font-size: 0.9rem;
@@ -233,8 +353,116 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .btn:hover { background: #f2f6f7; }
-    .btn:focus-visible { outline: 2px solid #7aa6d8; outline-offset: 2px; }
+
+    .btn:hover {
+      background: #f2f6f7;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid #7aa6d8;
+      outline-offset: 2px;
+    }
+
+    /* ------------------------------------------------ clinical note */
+    .note-bar {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .note-bar h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 9px 18px;
+      background: #2955c4;
+      color: #fff;
+      border: 1px solid #2955c4;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #2246a8;
+    }
+
+    .btn-primary:focus-visible {
+      outline: 2px solid #7aa6d8;
+      outline-offset: 2px;
+    }
+
+    .btn-primary:disabled {
+      background: #9db1de;
+      border-color: #9db1de;
+      cursor: not-allowed;
+    }
+
+    #note-status {
+      margin: 8px 2px 0;
+      min-height: 1.4em;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    #note-status.error {
+      color: var(--rec);
+    }
+
+    .note-panels {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .note-field label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #2955c4;
+      margin-bottom: 6px;
+    }
+
+    .note-field textarea {
+      width: 100%;
+      min-height: 150px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .note-field textarea:focus-visible {
+      outline: 2px solid #7aa6d8;
+      outline-offset: -2px;
+    }
+
+    .note-field textarea::placeholder {
+      color: #8b9aa1;
+    }
+
+    @media (max-width: 760px) {
+      .note-panels {
+        grid-template-columns: 1fr;
+      }
+    }
 
     /* ------------------------------------------------ status + terms */
     #status {
@@ -243,7 +471,10 @@
       font-size: 0.92rem;
       color: var(--muted);
     }
-    #status.error { color: var(--rec); }
+
+    #status.error {
+      color: var(--rec);
+    }
 
     .terms {
       margin-top: 8px;
@@ -252,40 +483,99 @@
       border-radius: var(--radius);
       padding: 14px 16px;
     }
-    .terms h3 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 600; }
-    .terms ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .terms h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .terms ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
     .terms li {
       padding: 3px 11px;
       border-radius: 999px;
       font-size: 0.88rem;
       background: #e9eef0;
     }
-    .terms li.doctor  { background: var(--doctor-soft);  color: var(--doctor); }
-    .terms li.patient { background: var(--patient-soft); color: var(--patient); }
-    .terms .empty { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+    .terms li.doctor {
+      background: var(--doctor-soft);
+      color: var(--doctor);
+    }
+
+    .terms li.patient {
+      background: var(--patient-soft);
+      color: var(--patient);
+    }
+
+    .terms .empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
 
     .dot-spin {
-      display: inline-block; width: 12px; height: 12px; margin-right: 8px;
-      border: 2px solid #b9c5c9; border-top-color: var(--doctor);
-      border-radius: 50%; vertical-align: -1px;
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 8px;
+      border: 2px solid #b9c5c9;
+      border-top-color: var(--doctor);
+      border-radius: 50%;
+      vertical-align: -1px;
       animation: spin .8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* ------------------------------------------------ small screens */
     @media (max-width: 760px) {
-      .panels { grid-template-columns: 1fr; }
-      textarea { min-height: 180px; }
-      .controls { grid-template-columns: 1fr; justify-items: center; }
-      .speaker, .side-right { justify-self: center; align-items: center; }
+      .panels {
+        grid-template-columns: 1fr;
+      }
+
+      textarea {
+        min-height: 180px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .speaker,
+      .side-right {
+        justify-self: center;
+        align-items: center;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #rec.on, .dot-spin { animation: none; }
-      #rec:hover { transform: none; }
+
+      #rec.on,
+      .dot-spin {
+        animation: none;
+      }
+
+      #rec:hover {
+        transform: none;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="shell">
     <header>
@@ -299,13 +589,19 @@
     <main>
       <div class="panels">
         <section class="panel active" data-role="doctor">
-          <div class="panel-head"><h2>Doctor</h2><span class="badge">Speaking</span></div>
-          <textarea id="doctor-text" aria-label="Doctor's words in English" placeholder="The doctor's words will appear here in English."></textarea>
+          <div class="panel-head">
+            <h2>Doctor</h2><span class="badge">Speaking</span>
+          </div>
+          <textarea id="doctor-text" aria-label="Doctor's words in English"
+            placeholder="The doctor's words will appear here in English."></textarea>
         </section>
 
         <section class="panel" data-role="patient">
-          <div class="panel-head"><h2>Patient</h2><span class="badge">Speaking</span></div>
-          <textarea id="patient-text" aria-label="Patient's words in English" placeholder="The patient's words will appear here in English."></textarea>
+          <div class="panel-head">
+            <h2>Patient</h2><span class="badge">Speaking</span>
+          </div>
+          <textarea id="patient-text" aria-label="Patient's words in English"
+            placeholder="The patient's words will appear here in English."></textarea>
         </section>
       </div>
 
@@ -319,7 +615,8 @@
 
         <div class="rec-wrap">
           <button id="rec" type="button" aria-label="Start recording">
-            <svg class="ico-mic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <svg class="ico-mic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="9" y="2" width="6" height="12" rx="3"></rect>
               <path d="M5 11a7 7 0 0 0 14 0"></path>
               <path d="M12 18v4"></path>
@@ -345,6 +642,34 @@
       </div>
 
       <p id="status" role="status" aria-live="polite"></p>
+
+      <section aria-labelledby="note-h">
+        <div class="note-bar">
+          <h2 id="note-h">Clinical note</h2>
+          <button class="btn-primary" id="generate-note" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8">
+              </path>
+            </svg>
+            Generate clinical note
+          </button>
+        </div>
+        <p id="note-status" role="status" aria-live="polite"></p>
+        <div class="note-panels">
+          <div class="note-field">
+            <label for="note-chief">Chief Complaint History</label>
+            <textarea id="note-chief"
+              placeholder="Patient-reported history will appear here after you generate the note."></textarea>
+          </div>
+          <div class="note-field">
+            <label for="note-exam">Examination / Findings</label>
+            <textarea id="note-exam"
+              placeholder="The doctor's assessment and plan will appear here after you generate the note."></textarea>
+          </div>
+        </div>
+      </section>
 
       <section class="terms" aria-labelledby="terms-h">
         <h3 id="terms-h">Medical terms detected</h3>
@@ -372,6 +697,10 @@
     const autoSwitch = $("#auto-switch");
     const termList = $("#terms");
     const termsEmpty = $("#terms-empty");
+    const generateBtn = $("#generate-note");
+    const noteStatus = $("#note-status");
+    const noteChief = $("#note-chief");
+    const noteExam = $("#note-exam");
 
     const MIN_SECONDS = 0.7;
 
@@ -555,7 +884,7 @@
 
       if (!res.ok) {
         let detail = res.statusText;
-        try { detail = (await res.json()).detail || detail; } catch (_) {}
+        try { detail = (await res.json()).detail || detail; } catch (_) { }
         throw new Error(detail);
       }
 
@@ -582,19 +911,68 @@
     document.querySelectorAll('input[name="speaker"]').forEach((i) => i.addEventListener("change", syncPanels));
 
     $("#clear").addEventListener("click", () => {
-      if (!boxes.doctor.value && !boxes.patient.value) return;
-      if (!confirm("Clear both text boxes?")) return;
+      if (!boxes.doctor.value && !boxes.patient.value && !noteChief.value && !noteExam.value) return;
+      if (!confirm("Clear the transcript and clinical note?")) return;
       boxes.doctor.value = "";
       boxes.patient.value = "";
+      noteChief.value = "";
+      noteExam.value = "";
+      setNoteStatus("");
       state.terms.clear();
       renderTerms();
       setStatus("Cleared.");
     });
 
+    function setNoteStatus(msg, kind = "") {
+      noteStatus.className = kind;
+      noteStatus.textContent = msg;
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      const doctorText = boxes.doctor.value.trim();
+      const patientText = boxes.patient.value.trim();
+
+      if (!doctorText && !patientText) {
+        setNoteStatus("Record some conversation first, then generate the note.", "error");
+        return;
+      }
+
+      generateBtn.disabled = true;
+      setNoteStatus("Generating clinical note… this can take a little while.");
+
+      try {
+        const res = await fetch("/api/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ doctor_text: doctorText, patient_text: patientText }),
+        });
+
+        if (!res.ok) {
+          let detail = res.statusText;
+          try { detail = (await res.json()).detail || detail; } catch (_) { }
+          throw new Error(detail);
+        }
+
+        const data = await res.json();
+        noteChief.value = data.chief_complaint || "";
+        noteExam.value = data.examination_findings || "";
+        setNoteStatus("Note generated. Review it before saving to a record.");
+      } catch (err) {
+        setNoteStatus(err.message || "Could not generate the note.", "error");
+      } finally {
+        generateBtn.disabled = false;
+      }
+    });
+
     $("#download").addEventListener("click", () => {
-      const text =
+      let text =
         "DOCTOR\n" + boxes.doctor.value.trim() + "\n\n" +
         "PATIENT\n" + boxes.patient.value.trim() + "\n";
+      if (noteChief.value.trim() || noteExam.value.trim()) {
+        text +=
+          "\nCHIEF COMPLAINT HISTORY\n" + noteChief.value.trim() + "\n\n" +
+          "EXAMINATION / FINDINGS\n" + noteExam.value.trim() + "\n";
+      }
       const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
       const a = document.createElement("a");
       a.href = url;
@@ -613,6 +991,11 @@
         if (h.status === "ready") {
           box.className = "engine ready";
           text.textContent = "Whisper " + h.whisper_model + (h.llm_cleanup ? " + " + h.llm_cleanup : "") + " ready";
+          if (!h.note_generation) {
+            generateBtn.disabled = true;
+            generateBtn.title = "Set OLLAMA_MODEL on the server to enable the clinical note.";
+            setNoteStatus("Clinical notes need an LLM. Set OLLAMA_MODEL when starting the server.");
+          }
         } else {
           box.className = "engine";
           text.textContent = "Loading speech model…";
@@ -629,4 +1012,5 @@
     checkEngine();
   </script>
 </body>
+
 </html>
