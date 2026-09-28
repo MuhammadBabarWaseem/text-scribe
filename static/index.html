@@ -587,7 +587,7 @@
     </header>
 
     <main>
-      <div class="panels">
+      <div class="panels" style="display: none;">
         <section class="panel active" data-role="doctor">
           <div class="panel-head">
             <h2>Doctor</h2><span class="badge">Speaking</span>
@@ -646,7 +646,7 @@
       <section aria-labelledby="note-h">
         <div class="note-bar">
           <h2 id="note-h">Clinical note</h2>
-          <button class="btn-primary" id="generate-note" type="button">
+          <button class="btn-primary" id="generate-note" type="button" style="display: none;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path
@@ -899,7 +899,11 @@
         if (!state.terms.has(t)) state.terms.set(t, role);
       }
       renderTerms();
-      if (state.pending <= 1) setStatus("Added to the " + role + "'s box.");
+      if (state.pending <= 1) {
+        setStatus("Transcribed successfully. Auto-updating note...");
+        await generateNote();
+        setStatus("Ready");
+      }
     }
 
     /* ---------------------------------------------------------- events */
@@ -923,22 +927,30 @@
       setStatus("Cleared.");
     });
 
-    function setNoteStatus(msg, kind = "") {
+    function setNoteStatus(msg, kind = "", spinner = false) {
       noteStatus.className = kind;
-      noteStatus.textContent = msg;
+      noteStatus.innerHTML = "";
+      if (spinner) {
+        const s = document.createElement("span");
+        s.className = "dot-spin";
+        noteStatus.appendChild(s);
+      }
+      if (msg) {
+        noteStatus.appendChild(document.createTextNode(msg));
+      }
     }
 
-    generateBtn.addEventListener("click", async () => {
+    async function generateNote() {
       const doctorText = boxes.doctor.value.trim();
       const patientText = boxes.patient.value.trim();
 
       if (!doctorText && !patientText) {
-        setNoteStatus("Record some conversation first, then generate the note.", "error");
         return;
       }
 
-      generateBtn.disabled = true;
-      setNoteStatus("Generating clinical note… this can take a little while.");
+      setNoteStatus("Generating clinical note… this can take a little while.", "", true);
+      noteChief.disabled = true;
+      noteExam.disabled = true;
 
       try {
         const res = await fetch("/api/summarize", {
@@ -956,12 +968,19 @@
         const data = await res.json();
         noteChief.value = data.chief_complaint || "";
         noteExam.value = data.examination_findings || "";
-        setNoteStatus("Note generated. Review it before saving to a record.");
+        setNoteStatus("Note auto-updated.");
       } catch (err) {
         setNoteStatus(err.message || "Could not generate the note.", "error");
       } finally {
-        generateBtn.disabled = false;
+        noteChief.disabled = false;
+        noteExam.disabled = false;
       }
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      generateBtn.disabled = true;
+      await generateNote();
+      generateBtn.disabled = false;
     });
 
     $("#download").addEventListener("click", () => {

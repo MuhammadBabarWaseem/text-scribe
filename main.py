@@ -164,7 +164,7 @@ SUMMARY_SYSTEM_PROMPT = (
     "- Only include sections that have relevant information.\n\n"
     "Return the result as a JSON object with exactly two string keys:\n"
     "1. 'chief_complaint': containing patient-reported information like Chief Complaint, History of Present Illness, Symptoms, Past Medical History, etc.\n"
-    "2. 'examination_findings': containing doctor-provided information like Assessment, Examination Findings, Investigations, Diagnosis, Treatment Plan, and Follow-up.\n"
+    "2. 'examination_findings': containing doctor-provided information like Assessment, Examination Findings, Investigations, Diagnosis, Treatment Plan, and Follow-up. (If the doctor has not spoken yet, leave this completely empty).\n"
     "Do not include any other text."
 )
 
