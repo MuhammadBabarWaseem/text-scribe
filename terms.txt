@@ -1,0 +1,145 @@
+# One medical term per line. Lines starting with # are ignored.
+# The FIRST ~60 terms are given to Whisper as a spelling hint (see PROMPT_TERM_COUNT),
+# so put the terms you expect to hear most often at the top.
+# ALL terms are used to highlight detected terminology in the app.
+
+hypertension
+diabetes
+blood pressure
+blood sugar
+Nuberol Fort
+Panadol
+cholesterol
+ECG
+asthma
+migraine
+gastritis
+ulcer
+arthritis
+thyroid
+anemia
+paracetamol
+ibuprofen
+aspirin
+metformin
+insulin
+amoxicillin
+azithromycin
+antibiotic
+antacid
+omeprazole
+prednisolone
+antihistamine
+inhaler
+nebulizer
+fever
+cough
+vomiting
+diarrhea
+nausea
+dizziness
+chest pain
+shortness of breath
+palpitations
+headache
+fatigue
+rash
+swelling
+inflammation
+infection
+allergy
+dehydration
+X-ray
+MRI
+CT scan
+ultrasound
+endoscopy
+biopsy
+blood test
+urine test
+hemoglobin
+creatinine
+HbA1c
+dosage
+prescription
+diagnosis
+symptoms
+surgery
+appendicitis
+pneumonia
+bronchitis
+tuberculosis
+hepatitis
+jaundice
+typhoid
+malaria
+dengue
+cholera
+gallstones
+kidney stones
+urinary tract infection
+heart attack
+stroke
+angina
+arrhythmia
+heart failure
+atorvastatin
+amlodipine
+losartan
+lisinopril
+warfarin
+clopidogrel
+diclofenac
+naproxen
+tramadol
+ciprofloxacin
+ceftriaxone
+doxycycline
+metronidazole
+ranitidine
+pantoprazole
+levothyroxine
+salbutamol
+montelukast
+cetirizine
+loratadine
+vitamin D
+vitamin B12
+iron deficiency
+calcium
+folic acid
+pregnancy
+ovarian cyst
+polycystic ovary syndrome
+menstrual cycle
+anxiety
+depression
+insomnia
+epilepsy
+seizure
+neuropathy
+sciatica
+osteoporosis
+fracture
+sprain
+eczema
+psoriasis
+acne
+conjunctivitis
+cataract
+glaucoma
+sinusitis
+tonsillitis
+otitis media
+constipation
+acid reflux
+irritable bowel syndrome
+fatty liver
+cirrhosis
+hemorrhoids
+hernia
+obesity
+BMI
+oxygen saturation
+pulse rate
+temperature

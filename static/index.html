@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Urdu Medical Scribe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #eaeff0;
+      --surface: #ffffff;
+      --ink: #14232a;
+      --muted: #5b6b73;
+      --line: #d3dcdf;
+      --doctor: #0b6e6e;
+      --doctor-soft: #dcefee;
+      --patient: #4a3fa0;
+      --patient-soft: #e6e3f6;
+      --rec: #c62839;
+      --rec-soft: #f9dfe2;
+      --radius: 10px;
+      --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px 24px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .sub {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .engine {
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .engine i {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #b5c0c4;
+      display: inline-block;
+    }
+    .engine.ready i { background: #2e9d63; }
+    .engine.error i { background: var(--rec); }
+
+    /* ------------------------------------------------ panels */
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--line);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .panel[data-role="doctor"].active  { border-top-color: var(--doctor);  box-shadow: 0 0 0 1px var(--doctor); }
+    .panel[data-role="patient"].active { border-top-color: var(--patient); box-shadow: 0 0 0 1px var(--patient); }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 6px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    .panel[data-role="doctor"] h2  { color: var(--doctor); }
+    .panel[data-role="patient"] h2 { color: var(--patient); }
+
+    .badge {
+      font-size: 0.8rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      visibility: hidden;
+    }
+    .panel.active .badge { visibility: visible; }
+    .panel[data-role="doctor"] .badge  { background: var(--doctor-soft);  color: var(--doctor); }
+    .panel[data-role="patient"] .badge { background: var(--patient-soft); color: var(--patient); }
+
+    textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 300px;
+      resize: vertical;
+      border: 0;
+      border-radius: 0 0 var(--radius) var(--radius);
+      padding: 8px 16px 16px;
+      font: inherit;
+      line-height: 1.6;
+      color: var(--ink);
+      background: transparent;
+    }
+    textarea:focus-visible { outline: 2px solid #7aa6d8; outline-offset: -2px; }
+    textarea::placeholder { color: #8b9aa1; }
+
+    /* ------------------------------------------------ control bar */
+    .controls {
+      margin-top: 18px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .speaker {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      justify-self: start;
+    }
+    .speaker input { position: absolute; opacity: 0; pointer-events: none; }
+    .speaker label {
+      padding: 9px 18px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--muted);
+      user-select: none;
+    }
+    .speaker label + input + label,
+    .speaker input + label + input + label { border-left: 1px solid var(--line); }
+    #sp-doctor:checked  + label { background: var(--doctor);  color: #fff; }
+    #sp-patient:checked + label { background: var(--patient); color: #fff; }
+    .speaker input:focus-visible + label { outline: 2px solid #7aa6d8; outline-offset: -3px; }
+    .speaker.locked label { cursor: not-allowed; opacity: .75; }
+
+    .rec-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 110px;
+    }
+
+    #rec {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--rec);
+      color: #fff;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform .1s;
+    }
+    #rec:hover { transform: scale(1.04); }
+    #rec:focus-visible { outline: 3px solid #7aa6d8; outline-offset: 3px; }
+    #rec .ico-stop { display: none; }
+    #rec.on .ico-mic { display: none; }
+    #rec.on .ico-stop { display: block; }
+    #rec.on { animation: pulse 1.4s ease-out infinite; }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(198, 40, 57, .45); }
+      100% { box-shadow: 0 0 0 18px rgba(198, 40, 57, 0); }
+    }
+
+    .rec-label { font-size: 0.9rem; font-weight: 500; }
+    .timer { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 0.85rem; min-height: 1.3em; }
+
+    .side-right {
+      justify-self: end;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .check { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); cursor: pointer; }
+    .check input { width: 16px; height: 16px; accent-color: var(--doctor); }
+
+    .btn-row { display: flex; gap: 8px; }
+    .btn {
+      font: inherit;
+      font-size: 0.9rem;
+      padding: 7px 14px;
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn:hover { background: #f2f6f7; }
+    .btn:focus-visible { outline: 2px solid #7aa6d8; outline-offset: 2px; }
+
+    /* ------------------------------------------------ status + terms */
+    #status {
+      margin: 14px 2px 0;
+      min-height: 1.5em;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+    #status.error { color: var(--rec); }
+
+    .terms {
+      margin-top: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .terms h3 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 600; }
+    .terms ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+    .terms li {
+      padding: 3px 11px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: #e9eef0;
+    }
+    .terms li.doctor  { background: var(--doctor-soft);  color: var(--doctor); }
+    .terms li.patient { background: var(--patient-soft); color: var(--patient); }
+    .terms .empty { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+    .dot-spin {
+      display: inline-block; width: 12px; height: 12px; margin-right: 8px;
+      border: 2px solid #b9c5c9; border-top-color: var(--doctor);
+      border-radius: 50%; vertical-align: -1px;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ------------------------------------------------ small screens */
+    @media (max-width: 760px) {
+      .panels { grid-template-columns: 1fr; }
+      textarea { min-height: 180px; }
+      .controls { grid-template-columns: 1fr; justify-items: center; }
+      .speaker, .side-right { justify-self: center; align-items: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #rec.on, .dot-spin { animation: none; }
+      #rec:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>Urdu Medical Scribe</h1>
+        <p class="sub">Speak in Urdu. The conversation appears in English, sorted by speaker.</p>
+      </div>
+      <div class="engine" id="engine"><i></i><span id="engine-text">Checking speech engine…</span></div>
+    </header>
+
+    <main>
+      <div class="panels">
+        <section class="panel active" data-role="doctor">
+          <div class="panel-head"><h2>Doctor</h2><span class="badge">Speaking</span></div>
+          <textarea id="doctor-text" aria-label="Doctor's words in English" placeholder="The doctor's words will appear here in English."></textarea>
+        </section>
+
+        <section class="panel" data-role="patient">
+          <div class="panel-head"><h2>Patient</h2><span class="badge">Speaking</span></div>
+          <textarea id="patient-text" aria-label="Patient's words in English" placeholder="The patient's words will appear here in English."></textarea>
+        </section>
+      </div>
+
+      <div class="controls">
+        <div class="speaker" id="speaker" role="radiogroup" aria-label="Who is speaking">
+          <input type="radio" name="speaker" id="sp-doctor" value="doctor" checked>
+          <label for="sp-doctor">Doctor</label>
+          <input type="radio" name="speaker" id="sp-patient" value="patient">
+          <label for="sp-patient">Patient</label>
+        </div>
+
+        <div class="rec-wrap">
+          <button id="rec" type="button" aria-label="Start recording">
+            <svg class="ico-mic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+              <path d="M5 11a7 7 0 0 0 14 0"></path>
+              <path d="M12 18v4"></path>
+            </svg>
+            <svg class="ico-stop" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+            </svg>
+          </button>
+          <span class="rec-label" id="rec-label">Record</span>
+          <span class="timer" id="timer"></span>
+        </div>
+
+        <div class="side-right">
+          <label class="check">
+            <input type="checkbox" id="auto-switch" checked>
+            Switch speaker after each turn
+          </label>
+          <div class="btn-row">
+            <button class="btn" id="download" type="button">Download</button>
+            <button class="btn" id="clear" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="status" role="status" aria-live="polite"></p>
+
+      <section class="terms" aria-labelledby="terms-h">
+        <h3 id="terms-h">Medical terms detected</h3>
+        <ul id="terms"></ul>
+        <p class="empty" id="terms-empty">Terms such as medicines, symptoms and conditions will be listed here.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    const $ = (sel) => document.querySelector(sel);
+
+    const boxes = { doctor: $("#doctor-text"), patient: $("#patient-text") };
+    const panels = {
+      doctor: document.querySelector('.panel[data-role="doctor"]'),
+      patient: document.querySelector('.panel[data-role="patient"]'),
+    };
+    const recBtn = $("#rec");
+    const recLabel = $("#rec-label");
+    const timerEl = $("#timer");
+    const statusEl = $("#status");
+    const speakerGroup = $("#speaker");
+    const autoSwitch = $("#auto-switch");
+    const termList = $("#terms");
+    const termsEmpty = $("#terms-empty");
+
+    const MIN_SECONDS = 0.7;
+
+    const state = {
+      recorder: null,
+      stream: null,
+      chunks: [],
+      recordingFor: null,   // speaker locked in when recording starts
+      startedAt: 0,
+      tick: null,
+      pending: 0,
+      queue: Promise.resolve(),
+      terms: new Map(),     // term -> speaker who said it first
+    };
+
+    /* ---------------------------------------------------------- helpers */
+    function setStatus(msg, kind = "", spinner = false) {
+      statusEl.className = kind;
+      statusEl.innerHTML = "";
+      if (spinner) {
+        const s = document.createElement("span");
+        s.className = "dot-spin";
+        statusEl.appendChild(s);
+      }
+      statusEl.appendChild(document.createTextNode(msg));
+    }
+
+    function currentSpeaker() {
+      return document.querySelector('input[name="speaker"]:checked').value;
+    }
+
+    function setSpeaker(role) {
+      document.getElementById("sp-" + role).checked = true;
+      syncPanels();
+    }
+
+    function syncPanels() {
+      const role = currentSpeaker();
+      for (const r of Object.keys(panels)) panels[r].classList.toggle("active", r === role);
+    }
+
+    function pickMime() {
+      if (!window.MediaRecorder) return "";
+      const options = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+      return options.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+    }
+
+    function extFor(mime) {
+      if (mime.includes("mp4")) return "m4a";
+      if (mime.includes("ogg")) return "ogg";
+      return "webm";
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    function appendText(role, text) {
+      const box = boxes[role];
+      const sep = box.value && !box.value.endsWith("\n") ? "\n" : "";
+      box.value += sep + text + "\n";
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function renderTerms() {
+      termList.innerHTML = "";
+      for (const [term, role] of state.terms) {
+        const li = document.createElement("li");
+        li.textContent = term;
+        li.className = role;
+        termList.appendChild(li);
+      }
+      termsEmpty.style.display = state.terms.size ? "none" : "block";
+    }
+
+    /* ---------------------------------------------------------- recording */
+    async function startRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setStatus("This browser can't access the microphone here. Open the app at http://localhost:8000 or over HTTPS.", "error");
+        return;
+      }
+      if (!window.MediaRecorder) {
+        setStatus("This browser doesn't support audio recording. Try a recent Chrome, Edge, Firefox or Safari.", "error");
+        return;
+      }
+
+      try {
+        state.stream = await navigator.mediaDevices.getUserMedia({
+          audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
+        });
+      } catch (err) {
+        setStatus("Microphone access was blocked. Allow it in the address bar, then press Record again.", "error");
+        return;
+      }
+
+      const mime = pickMime();
+      state.recorder = new MediaRecorder(state.stream, mime ? { mimeType: mime } : undefined);
+      state.chunks = [];
+      state.recordingFor = currentSpeaker();
+
+      state.recorder.ondataavailable = (e) => { if (e.data.size) state.chunks.push(e.data); };
+      state.recorder.onstop = handleStop;
+      state.recorder.start();
+
+      state.startedAt = performance.now();
+      state.tick = setInterval(() => {
+        timerEl.textContent = formatTime((performance.now() - state.startedAt) / 1000);
+      }, 250);
+      timerEl.textContent = "00:00";
+
+      recBtn.classList.add("on");
+      recBtn.setAttribute("aria-label", "Stop recording");
+      recLabel.textContent = "Stop";
+      speakerGroup.classList.add("locked");
+      document.querySelectorAll('input[name="speaker"]').forEach((i) => (i.disabled = true));
+      setStatus("Recording " + state.recordingFor + "… press Stop when the turn is finished.");
+    }
+
+    function stopRecording() {
+      if (state.recorder && state.recorder.state !== "inactive") state.recorder.stop();
+    }
+
+    function resetControls() {
+      clearInterval(state.tick);
+      timerEl.textContent = "";
+      recBtn.classList.remove("on");
+      recBtn.setAttribute("aria-label", "Start recording");
+      recLabel.textContent = "Record";
+      speakerGroup.classList.remove("locked");
+      document.querySelectorAll('input[name="speaker"]').forEach((i) => (i.disabled = false));
+    }
+
+    function handleStop() {
+      const seconds = (performance.now() - state.startedAt) / 1000;
+      const role = state.recordingFor;
+      const mime = state.recorder.mimeType || "audio/webm";
+      const blob = new Blob(state.chunks, { type: mime });
+
+      state.stream.getTracks().forEach((t) => t.stop());
+      resetControls();
+
+      if (seconds < MIN_SECONDS) {
+        setStatus("That recording was too short. Hold on a little longer and try again.", "error");
+        return;
+      }
+
+      if (autoSwitch.checked) setSpeaker(role === "doctor" ? "patient" : "doctor");
+
+      // Process turns one at a time so they always land in the order they were spoken.
+      state.pending += 1;
+      updatePending();
+      state.queue = state.queue
+        .then(() => sendAudio(blob, role, mime))
+        .catch((err) => setStatus(err.message, "error"))
+        .finally(() => {
+          state.pending -= 1;
+          updatePending();
+        });
+    }
+
+    function updatePending() {
+      if (state.pending > 0) {
+        setStatus("Translating to English" + (state.pending > 1 ? " (" + state.pending + " turns queued)" : "") + "…", "", true);
+      }
+    }
+
+    /* ---------------------------------------------------------- server call */
+    async function sendAudio(blob, role, mime) {
+      const form = new FormData();
+      form.append("audio", blob, "turn." + extFor(mime));
+      form.append("speaker", role);
+
+      let res;
+      try {
+        res = await fetch("/api/transcribe", { method: "POST", body: form });
+      } catch (e) {
+        throw new Error("Can't reach the server. Check that it is running, then record that turn again.");
+      }
+
+      if (!res.ok) {
+        let detail = res.statusText;
+        try { detail = (await res.json()).detail || detail; } catch (_) {}
+        throw new Error(detail);
+      }
+
+      const data = await res.json();
+      if (!data.text) {
+        setStatus("No speech was detected in that recording.", "error");
+        return;
+      }
+
+      appendText(role, data.text);
+      for (const t of data.terms || []) {
+        if (!state.terms.has(t)) state.terms.set(t, role);
+      }
+      renderTerms();
+      if (state.pending <= 1) setStatus("Added to the " + role + "'s box.");
+    }
+
+    /* ---------------------------------------------------------- events */
+    recBtn.addEventListener("click", () => {
+      if (state.recorder && state.recorder.state === "recording") stopRecording();
+      else startRecording();
+    });
+
+    document.querySelectorAll('input[name="speaker"]').forEach((i) => i.addEventListener("change", syncPanels));
+
+    $("#clear").addEventListener("click", () => {
+      if (!boxes.doctor.value && !boxes.patient.value) return;
+      if (!confirm("Clear both text boxes?")) return;
+      boxes.doctor.value = "";
+      boxes.patient.value = "";
+      state.terms.clear();
+      renderTerms();
+      setStatus("Cleared.");
+    });
+
+    $("#download").addEventListener("click", () => {
+      const text =
+        "DOCTOR\n" + boxes.doctor.value.trim() + "\n\n" +
+        "PATIENT\n" + boxes.patient.value.trim() + "\n";
+      const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "consultation-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    /* ---------------------------------------------------------- engine status */
+    async function checkEngine() {
+      const box = $("#engine");
+      const text = $("#engine-text");
+      try {
+        const res = await fetch("/api/health");
+        const h = await res.json();
+        if (h.status === "ready") {
+          box.className = "engine ready";
+          text.textContent = "Whisper " + h.whisper_model + (h.llm_cleanup ? " + " + h.llm_cleanup : "") + " ready";
+        } else {
+          box.className = "engine";
+          text.textContent = "Loading speech model…";
+          setTimeout(checkEngine, 2000);
+        }
+      } catch (e) {
+        box.className = "engine error";
+        text.textContent = "Server not reachable";
+      }
+    }
+
+    renderTerms();
+    syncPanels();
+    checkEngine();
+  </script>
+</body>
+</html>
