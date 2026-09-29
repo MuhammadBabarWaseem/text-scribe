@@ -657,6 +657,16 @@
             <textarea id="note-exam"
               placeholder="The doctor's assessment and plan will appear here after you generate the note."></textarea>
           </div>
+          <div class="note-field">
+            <label for="note-detailed-history">Detailed History</label>
+            <textarea id="note-detailed-history"
+              placeholder="Detailed history will appear here after you generate the note."></textarea>
+          </div>
+          <div class="note-field">
+            <label for="note-detailed-exam">Detailed Examination / Plan</label>
+            <textarea id="note-detailed-exam"
+              placeholder="Detailed examination and plan will appear here after you generate the note."></textarea>
+          </div>
         </div>
       </section>
 
@@ -688,6 +698,8 @@
     const noteStatus = $("#note-status");
     const noteChief = $("#note-chief");
     const noteExam = $("#note-exam");
+    const noteDetailedHistory = $("#note-detailed-history");
+    const noteDetailedExam = $("#note-detailed-exam");
 
     const MIN_SECONDS = 0.7;
 
@@ -876,6 +888,8 @@
       state.fullTranscript = "";
       noteChief.value = "";
       noteExam.value = "";
+      noteDetailedHistory.value = "";
+      noteDetailedExam.value = "";
       setNoteStatus("");
       state.terms.clear();
       renderTerms();
@@ -903,6 +917,8 @@
       setNoteStatus("Generating clinical note… this can take a little while.", "", true);
       noteChief.disabled = true;
       noteExam.disabled = true;
+      noteDetailedHistory.disabled = true;
+      noteDetailedExam.disabled = true;
 
       try {
         const res = await fetch("/api/summarize", {
@@ -920,12 +936,16 @@
         const data = await res.json();
         noteChief.value = data.chief_complaint || "";
         noteExam.value = data.examination_findings || "";
+        noteDetailedHistory.value = data.detailed_history || "";
+        noteDetailedExam.value = data.detailed_examination || "";
         setNoteStatus("Note auto-updated.");
       } catch (err) {
         setNoteStatus(err.message || "Could not generate the note.", "error");
       } finally {
         noteChief.disabled = false;
         noteExam.disabled = false;
+        noteDetailedHistory.disabled = false;
+        noteDetailedExam.disabled = false;
       }
     }
 
@@ -937,10 +957,12 @@
 
     $("#download").addEventListener("click", () => {
       let text = "TRANSCRIPT\n" + state.fullTranscript + "\n\n";
-      if (noteChief.value.trim() || noteExam.value.trim()) {
+      if (noteChief.value.trim() || noteExam.value.trim() || noteDetailedHistory.value.trim() || noteDetailedExam.value.trim()) {
         text +=
           "\nCHIEF COMPLAINT HISTORY\n" + noteChief.value.trim() + "\n\n" +
-          "EXAMINATION / FINDINGS\n" + noteExam.value.trim() + "\n";
+          "EXAMINATION / FINDINGS\n" + noteExam.value.trim() + "\n\n" +
+          "DETAILED HISTORY\n" + noteDetailedHistory.value.trim() + "\n\n" +
+          "DETAILED EXAMINATION / PLAN\n" + noteDetailedExam.value.trim() + "\n";
       }
       const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
       const a = document.createElement("a");
