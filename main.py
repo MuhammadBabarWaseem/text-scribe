@@ -148,13 +148,12 @@ def refine_with_llm(text: str) -> tuple[str, bool]:
 
 # ---------------------------------------------------------------- clinical note (summarize)
 class SummarizeRequest(BaseModel):
-    doctor_text: str
-    patient_text: str
+    transcript: str
 
 
 SUMMARY_SYSTEM_PROMPT = (
-    "You are an expert medical scribe. Given the transcript of a consultation between a doctor and a patient, "
-    "generate a structured clinical note.\n\n"
+    "You are an expert medical scribe. Given the raw, unlabeled transcript of a consultation between a doctor and a patient, "
+    "generate a structured clinical note. (You must infer who is speaking based on the context).\n\n"
     "Important requirements:\n"
     "- Do not blindly transcribe every sentence or include conversational fillers.\n"
     "- Preserve clinically important information exactly, especially medication names, doses, units, and durations.\n"
@@ -174,10 +173,10 @@ def summarize_consultation(req: SummarizeRequest):
     if not OLLAMA_MODEL:
         raise HTTPException(503, "Ollama is not configured. Set OLLAMA_MODEL to enable the clinical note.")
 
-    if not req.doctor_text.strip() and not req.patient_text.strip():
+    if not req.transcript.strip():
         raise HTTPException(400, "There's no transcript yet to summarize.")
 
-    transcript = f"Doctor:\n{req.doctor_text}\n\nPatient:\n{req.patient_text}"
+    transcript = req.transcript
 
     try:
         r = httpx.post(
@@ -223,9 +222,7 @@ def health():
 
 
 @app.post("/api/transcribe")
-def transcribe(audio: UploadFile = File(...), speaker: str = Form(...)):
-    if speaker not in ("doctor", "patient"):
-        raise HTTPException(400, "speaker must be 'doctor' or 'patient'")
+def transcribe(audio: UploadFile = File(...)):
     if model is None:
         raise HTTPException(503, "The speech model is still loading. Try again in a moment.")
 
@@ -254,7 +251,6 @@ def transcribe(audio: UploadFile = File(...), speaker: str = Form(...)):
     text, refined = refine_with_llm(raw)
 
     return {
-        "speaker": speaker,
         "text": text,
         "refined": refined,
         "terms": find_terms(text),

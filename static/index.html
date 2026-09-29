@@ -606,15 +606,8 @@
       </div>
 
       <div class="controls">
-        <div class="speaker" id="speaker" role="radiogroup" aria-label="Who is speaking">
-          <input type="radio" name="speaker" id="sp-doctor" value="doctor" checked>
-          <label for="sp-doctor">Doctor</label>
-          <input type="radio" name="speaker" id="sp-patient" value="patient">
-          <label for="sp-patient">Patient</label>
-        </div>
-
         <div class="rec-wrap">
-          <button id="rec" type="button" aria-label="Start recording">
+          <button id="rec" type="button" aria-label="Start Conversation">
             <svg class="ico-mic" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="9" y="2" width="6" height="12" rx="3"></rect>
@@ -625,15 +618,11 @@
               <rect x="5" y="5" width="14" height="14" rx="2"></rect>
             </svg>
           </button>
-          <span class="rec-label" id="rec-label">Record</span>
+          <span class="rec-label" id="rec-label">Start Conversation</span>
           <span class="timer" id="timer"></span>
         </div>
 
         <div class="side-right">
-          <label class="check">
-            <input type="checkbox" id="auto-switch" checked>
-            Switch speaker after each turn
-          </label>
           <div class="btn-row">
             <button class="btn" id="download" type="button">Download</button>
             <button class="btn" id="clear" type="button">Clear</button>
@@ -693,8 +682,6 @@
     const recLabel = $("#rec-label");
     const timerEl = $("#timer");
     const statusEl = $("#status");
-    const speakerGroup = $("#speaker");
-    const autoSwitch = $("#auto-switch");
     const termList = $("#terms");
     const termsEmpty = $("#terms-empty");
     const generateBtn = $("#generate-note");
@@ -708,12 +695,12 @@
       recorder: null,
       stream: null,
       chunks: [],
-      recordingFor: null,   // speaker locked in when recording starts
       startedAt: 0,
       tick: null,
       pending: 0,
       queue: Promise.resolve(),
       terms: new Map(),     // term -> speaker who said it first
+      fullTranscript: "",
     };
 
     /* ---------------------------------------------------------- helpers */
@@ -726,20 +713,6 @@
         statusEl.appendChild(s);
       }
       statusEl.appendChild(document.createTextNode(msg));
-    }
-
-    function currentSpeaker() {
-      return document.querySelector('input[name="speaker"]:checked').value;
-    }
-
-    function setSpeaker(role) {
-      document.getElementById("sp-" + role).checked = true;
-      syncPanels();
-    }
-
-    function syncPanels() {
-      const role = currentSpeaker();
-      for (const r of Object.keys(panels)) panels[r].classList.toggle("active", r === role);
     }
 
     function pickMime() {
@@ -758,13 +731,6 @@
       const m = Math.floor(sec / 60);
       const s = Math.floor(sec % 60);
       return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
-    }
-
-    function appendText(role, text) {
-      const box = boxes[role];
-      const sep = box.value && !box.value.endsWith("\n") ? "\n" : "";
-      box.value += sep + text + "\n";
-      box.scrollTop = box.scrollHeight;
     }
 
     function renderTerms() {
@@ -801,7 +767,6 @@
       const mime = pickMime();
       state.recorder = new MediaRecorder(state.stream, mime ? { mimeType: mime } : undefined);
       state.chunks = [];
-      state.recordingFor = currentSpeaker();
 
       state.recorder.ondataavailable = (e) => { if (e.data.size) state.chunks.push(e.data); };
       state.recorder.onstop = handleStop;
@@ -814,11 +779,9 @@
       timerEl.textContent = "00:00";
 
       recBtn.classList.add("on");
-      recBtn.setAttribute("aria-label", "Stop recording");
+      recBtn.setAttribute("aria-label", "Stop Conversation");
       recLabel.textContent = "Stop";
-      speakerGroup.classList.add("locked");
-      document.querySelectorAll('input[name="speaker"]').forEach((i) => (i.disabled = true));
-      setStatus("Recording " + state.recordingFor + "… press Stop when the turn is finished.");
+      setStatus("Recording conversation… press Stop when finished.");
     }
 
     function stopRecording() {
@@ -829,15 +792,12 @@
       clearInterval(state.tick);
       timerEl.textContent = "";
       recBtn.classList.remove("on");
-      recBtn.setAttribute("aria-label", "Start recording");
-      recLabel.textContent = "Record";
-      speakerGroup.classList.remove("locked");
-      document.querySelectorAll('input[name="speaker"]').forEach((i) => (i.disabled = false));
+      recBtn.setAttribute("aria-label", "Start Conversation");
+      recLabel.textContent = "Start";
     }
 
     function handleStop() {
       const seconds = (performance.now() - state.startedAt) / 1000;
-      const role = state.recordingFor;
       const mime = state.recorder.mimeType || "audio/webm";
       const blob = new Blob(state.chunks, { type: mime });
 
@@ -849,13 +809,10 @@
         return;
       }
 
-      if (autoSwitch.checked) setSpeaker(role === "doctor" ? "patient" : "doctor");
-
-      // Process turns one at a time so they always land in the order they were spoken.
       state.pending += 1;
       updatePending();
       state.queue = state.queue
-        .then(() => sendAudio(blob, role, mime))
+        .then(() => sendAudio(blob, mime))
         .catch((err) => setStatus(err.message, "error"))
         .finally(() => {
           state.pending -= 1;
@@ -870,10 +827,9 @@
     }
 
     /* ---------------------------------------------------------- server call */
-    async function sendAudio(blob, role, mime) {
+    async function sendAudio(blob, mime) {
       const form = new FormData();
       form.append("audio", blob, "turn." + extFor(mime));
-      form.append("speaker", role);
 
       let res;
       try {
@@ -884,7 +840,7 @@
 
       if (!res.ok) {
         let detail = res.statusText;
-        try { detail = (await res.json()).detail || detail; } catch (_) { }
+        try { detail = (await res.json()).detail || detail; } catch (_) {}
         throw new Error(detail);
       }
 
@@ -894,9 +850,9 @@
         return;
       }
 
-      appendText(role, data.text);
+      state.fullTranscript += (state.fullTranscript ? "\n\n" : "") + data.text;
       for (const t of data.terms || []) {
-        if (!state.terms.has(t)) state.terms.set(t, role);
+        if (!state.terms.has(t)) state.terms.set(t, "doctor");
       }
       renderTerms();
       if (state.pending <= 1) {
@@ -912,13 +868,12 @@
       else startRecording();
     });
 
-    document.querySelectorAll('input[name="speaker"]').forEach((i) => i.addEventListener("change", syncPanels));
-
     $("#clear").addEventListener("click", () => {
-      if (!boxes.doctor.value && !boxes.patient.value && !noteChief.value && !noteExam.value) return;
+      if (!state.fullTranscript && !noteChief.value && !noteExam.value) return;
       if (!confirm("Clear the transcript and clinical note?")) return;
       boxes.doctor.value = "";
       boxes.patient.value = "";
+      state.fullTranscript = "";
       noteChief.value = "";
       noteExam.value = "";
       setNoteStatus("");
@@ -941,10 +896,7 @@
     }
 
     async function generateNote() {
-      const doctorText = boxes.doctor.value.trim();
-      const patientText = boxes.patient.value.trim();
-
-      if (!doctorText && !patientText) {
+      if (!state.fullTranscript) {
         return;
       }
 
@@ -956,7 +908,7 @@
         const res = await fetch("/api/summarize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ doctor_text: doctorText, patient_text: patientText }),
+          body: JSON.stringify({ transcript: state.fullTranscript }),
         });
 
         if (!res.ok) {
@@ -984,9 +936,7 @@
     });
 
     $("#download").addEventListener("click", () => {
-      let text =
-        "DOCTOR\n" + boxes.doctor.value.trim() + "\n\n" +
-        "PATIENT\n" + boxes.patient.value.trim() + "\n";
+      let text = "TRANSCRIPT\n" + state.fullTranscript + "\n\n";
       if (noteChief.value.trim() || noteExam.value.trim()) {
         text +=
           "\nCHIEF COMPLAINT HISTORY\n" + noteChief.value.trim() + "\n\n" +
@@ -1027,7 +977,6 @@
     }
 
     renderTerms();
-    syncPanels();
     checkEngine();
   </script>
 </body>

@@ -1,127 +1,204 @@
-# One medical term per line. Lines starting with # are ignored.
-# The FIRST ~60 terms are given to Whisper as a spelling hint (see PROMPT_TERM_COUNT),
-# so put the terms you expect to hear most often at the top.
-# ALL terms are used to highlight detected terminology in the app.
+# One medical term per line. Lines starting with # (and blank lines) are ignored
+# by the app, so the section headers below are just for your own reference.
+#
+# The FIRST ~60 REAL terms (skipping comments/blank lines) are given to Whisper
+# as a spelling hint - see PROMPT_TERM_COUNT in main.py - so the section right
+# below is the highest-value, most-commonly-spoken set. Keep it lean; padding
+# it with rare terms dilutes the hint.
+#
+# ALL terms in the whole file are used to highlight detected terminology in
+# the app, so it's fine for the sections further down to be long.
 
-hypertension
-diabetes
-blood pressure
-blood sugar
-Nuberol Fort
-Panadol
-cholesterol
-ECG
-asthma
-migraine
-gastritis
-ulcer
-arthritis
-thyroid
-anemia
-paracetamol
-ibuprofen
-aspirin
-metformin
-insulin
-amoxicillin
-azithromycin
-antibiotic
-antacid
-omeprazole
-prednisolone
-antihistamine
-inhaler
-nebulizer
+# ============================================================
+# PRIORITY SET (fed to Whisper as a hint - keep near 60 terms)
+# ============================================================
 fever
 cough
-vomiting
-diarrhea
-nausea
-dizziness
-chest pain
-shortness of breath
-palpitations
+cold
+flu
 headache
+body ache
+weakness
 fatigue
-rash
-swelling
-inflammation
-infection
+vomiting
+nausea
+diarrhea
+constipation
+stomach pain
+chest pain
+back pain
+joint pain
+blood pressure
+high blood pressure
+low blood pressure
+blood sugar
+diabetes
+hypertension
+cholesterol
+thyroid
+anemia
 allergy
+infection
 dehydration
-X-ray
-MRI
-CT scan
-ultrasound
-endoscopy
-biopsy
-blood test
-urine test
-hemoglobin
-creatinine
-HbA1c
-dosage
-prescription
-diagnosis
-symptoms
-surgery
-appendicitis
-pneumonia
-bronchitis
-tuberculosis
-hepatitis
-jaundice
-typhoid
-malaria
-dengue
-cholera
-gallstones
-kidney stones
-urinary tract infection
-heart attack
-stroke
-angina
-arrhythmia
-heart failure
-atorvastatin
-amlodipine
-losartan
-lisinopril
-warfarin
-clopidogrel
-diclofenac
-naproxen
-tramadol
-ciprofloxacin
-ceftriaxone
-doxycycline
-metronidazole
-ranitidine
-pantoprazole
-levothyroxine
-salbutamol
-montelukast
-cetirizine
-loratadine
-vitamin D
-vitamin B12
-iron deficiency
-calcium
-folic acid
-pregnancy
-ovarian cyst
-polycystic ovary syndrome
-menstrual cycle
-anxiety
-depression
+dizziness
+shortness of breath
+swelling
+rash
+itching
+weight loss
+weight gain
+loss of appetite
 insomnia
-epilepsy
+Panadol
+Nuberol Fort
+Brufen
+Augmentin
+Amoxil
+Flagyl
+Disprin
+Ponstan
+Calpol
+Risek
+ORS
+antibiotic
+painkiller
+injection
+drip
+tablet
+syrup
+capsule
+dose
+CBC
+urine test
+blood test
+ultrasound
+X-ray
+ECG
+
+# ============================================================
+# PAKISTANI BRAND NAMES -> GENERIC (both forms are matched)
+# ============================================================
+paracetamol
+Panadol Extra
+ibuprofen
+mefenamic acid
+diclofenac
+Voltral
+aspirin
+Ecosprin
+omeprazole
+Rigix
+Ocid
+pantoprazole
+Pantoloc
+Protec
+ranitidine
+Zantac
+domperidone
+Motilium
+metronidazole
+amoxicillin
+azithromycin
+Zithrocin
+Azomax
+Azithral
+ciprofloxacin
+Ciprol
+cephradine
+Velosef
+cetirizine
+Zyrtec
+Alerid
+loratadine
+Claritin
+montelukast
+Singulair
+salbutamol
+Ventolin
+Asthalin
+metformin
+Glucophage
+amlodipine
+Norvasc
+losartan
+Losar
+atorvastatin
+Lipitor
+Atorlip
+levothyroxine
+Eltroxin
+prednisolone
+Deltacortil
+insulin
+Lantus
+Mixtard
+Novomix
+Tramal
+tramadol
+Buscopan
+Augmentin Duo
+
+# ============================================================
+# SYMPTOMS (patient-reported)
+# ============================================================
+palpitations
+burning sensation
+difficulty breathing
+difficulty swallowing
+loose motions
+blood in stool
+blood in urine
+frequent urination
+burning urination
+night sweats
+excessive thirst
+excessive hunger
+numbness
+tingling
+tremors
+blurred vision
+ringing in ears
+loss of consciousness
+fainting
 seizure
-neuropathy
-sciatica
+convulsion
+lump
+bruising
+bleeding gums
+sore throat
+runny nose
+nasal congestion
+ear pain
+eye pain
+red eyes
+watery eyes
+yellowing of skin
+yellowing of eyes
+skin discoloration
+hair loss
+weight fluctuation
+irregular periods
+heavy bleeding
+abdominal cramps
+bloating
+heartburn
+indigestion
+loss of taste
+loss of smell
+
+# ============================================================
+# CONDITIONS / DIAGNOSES
+# ============================================================
+gastritis
+ulcer
+peptic ulcer
+arthritis
+rheumatoid arthritis
+osteoarthritis
 osteoporosis
 fracture
 sprain
+dislocation
 eczema
 psoriasis
 acne
@@ -131,15 +208,171 @@ glaucoma
 sinusitis
 tonsillitis
 otitis media
-constipation
 acid reflux
+GERD
 irritable bowel syndrome
 fatty liver
 cirrhosis
 hemorrhoids
 hernia
 obesity
-BMI
+appendicitis
+pneumonia
+bronchitis
+asthma
+COPD
+tuberculosis
+hepatitis A
+hepatitis B
+hepatitis C
+jaundice
+typhoid
+malaria
+dengue
+chikungunya
+cholera
+COVID-19
+gallstones
+kidney stones
+urinary tract infection
+UTI
+heart attack
+myocardial infarction
+stroke
+angina
+arrhythmia
+heart failure
+migraine
+epilepsy
+neuropathy
+sciatica
+vertigo
+depression
+anxiety
+panic attack
+polycystic ovary syndrome
+PCOS
+endometriosis
+fibroids
+miscarriage
+ectopic pregnancy
+
+# ============================================================
+# LAB TESTS, IMAGING & VITALS
+# ============================================================
+complete blood count
+LFTs
+liver function test
+RFTs
+renal function test
+ESR
+CRP
+hemoglobin
+hematocrit
+platelet count
+WBC count
+blood glucose
+random blood sugar
+fasting blood sugar
+HbA1c
+creatinine
+urea
+uric acid
+lipid profile
+CT scan
+MRI
+endoscopy
+colonoscopy
+biopsy
+echocardiogram
+EEG
+Doppler
+mammogram
+Pap smear
 oxygen saturation
+SpO2
 pulse rate
+heart rate
+respiratory rate
 temperature
+BMI
+blood group
+
+# ============================================================
+# MEDICATION TYPES / DOSAGE SHORTHAND
+# ============================================================
+prescription
+dosage
+antihistamine
+antacid
+antiemetic
+antipyretic
+anticoagulant
+steroid
+inhaler
+nebulizer
+vaccine
+vaccination
+booster dose
+once daily
+twice daily
+three times a day
+before meals
+after meals
+at bedtime
+as needed
+stat dose
+
+# ============================================================
+# WOMEN'S HEALTH / PREGNANCY / PEDIATRICS
+# ============================================================
+pregnancy
+prenatal
+delivery
+C-section
+cesarean
+menopause
+menstrual cycle
+breastfeeding
+vaccination schedule
+growth chart
+teething
+colic
+diaper rash
+
+# ============================================================
+# SPECIALTIES / REFERRALS
+# ============================================================
+cardiologist
+gynecologist
+pediatrician
+orthopedic surgeon
+dermatologist
+ENT specialist
+psychiatrist
+neurologist
+gastroenterologist
+endocrinologist
+nephrologist
+urologist
+ophthalmologist
+general surgeon
+
+# ============================================================
+# GENERAL / ADMIN TERMS
+# ============================================================
+diagnosis
+symptoms
+surgery
+follow-up
+referral
+admission
+discharge
+ICU
+emergency
+vitals
+iron deficiency
+vitamin D
+vitamin B12
+calcium
+folic acid
